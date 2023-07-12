@@ -21,7 +21,7 @@ async fn retrieve(path: web::Path<i32>, state: web::Data<AppState>) -> Result<Js
     Ok(Json(todo))
 }
 
-#[post("")]
+#[post("add")]
 async fn add(todo: web::Json<TodoNew>, state: web::Data<AppState>) -> Result<Json<Todo>> {
     let todo = sqlx::query_as("INSERT INTO todos(note) VALUES ($1) RETURNING id, note")
         .bind(&todo.note)
@@ -32,12 +32,42 @@ async fn add(todo: web::Json<TodoNew>, state: web::Data<AppState>) -> Result<Jso
     Ok(Json(todo))
 }
 
+// cuntom error
+#[derive(Debug)]
+enum MyError {
+    SqlxError(sqlx::Error),
+    IoError(std::io::Error),
+}
+
+impl std::fmt::Display for MyError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            MyError::SqlxError(e) => write!(f, "sqlx error: {}", e),
+            MyError::IoError(e) => write!(f, "io error: {}", e),
+        }
+    }
+}
+
+impl std::error::Error for MyError {}
+
+impl From<sqlx::Error> for MyError {
+    fn from(e: sqlx::Error) -> Self {
+        MyError::SqlxError(e)
+    }
+}
+
+impl From<std::io::Error> for MyError {
+    fn from(e: std::io::Error) -> Self {
+        MyError::IoError(e)
+    }
+}
+
 #[derive(Clone)]
 struct AppState {
     pool: PgPool,
 }
 
-#[shuttle_runtime::main]
+/* #[shuttle_runtime::main]
 async fn actix_web(
     #[shuttle_shared_db::Postgres] pool: PgPool,
 ) -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
@@ -58,7 +88,7 @@ async fn actix_web(
     };
 
     Ok(config.into())
-}
+} */
 
 #[derive(Deserialize)]
 struct TodoNew {
@@ -89,19 +119,23 @@ async fn establish_connection() -> Result<Pool<Postgres>, sqlx::Error> {
     Ok(pool)
 }
 
-#[actix_web::test]
-async fn test_server() -> std::io::Result<()> {
-    let pool =establish_connection().await?;
+// #[actix_web::main]
+#[tokio::main]
+// async fn test_server() -> std::result::Result<(), MyError> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let pool = establish_connection().await?;
     let state = web::Data::new(AppState { pool });
-    HttpServer::new(|| {
+    HttpServer::new(move || {
         App::new()
-            .service(index)
-            .service(hello)
+            // .service(index)
+            // .service(hello)
             .service(retrieve)
             .service(add)
-            .app_data(state)
+            .app_data(state.clone())
     })
     .bind(("127.0.0.1", 8080))?
     .run()
     .await
+    .map_err(MyError::IoError)?;
+    Ok(())
 }

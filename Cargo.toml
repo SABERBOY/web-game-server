@@ -7,11 +7,11 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-shuttle-runtime = "0.17.0"
+shuttle-runtime = "0.18.0"
 actix-web = "4.3.1"
-shuttle-actix-web = "0.17.0"
-tokio = "1.28.1"
+shuttle-actix-web = "0.18.0"
+tokio = { version = "1.29.1", features = ["full"] }
 serde = { version = "1.0.163", features = ["derive"] }
-sqlx = {version ="0.6", features = [ "runtime-tokio-native-tls" , "postgres"] }
-shuttle-shared-db = { version = "0.17.0", features = ["postgres"] }
-shuttle-rocket = { version = "0.17.0" }
+sqlx = { version = "0.6", features = ["runtime-tokio-native-tls", "postgres"] }
+shuttle-shared-db = { version = "0.18.0", features = ["postgres"] }
+shuttle-rocket = { version = "0.18.0" }
