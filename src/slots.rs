@@ -158,8 +158,8 @@ impl SlotMachine {
         if self.reels.len() >= 3 && self.rows >= 3 {
             // Top-left to bottom-right
             let mut diagonal1 = Vec::new();
-            for i in 0..self.reels.len().min(self.rows) {
-                diagonal1.push(grid[i][i].clone());
+            for (i, item) in grid.iter().enumerate().take(self.reels.len().min(self.rows)) {
+                diagonal1.push(item[i].clone());
             }
             if let Some(win) = self.check_line(&diagonal1) {
                 winning_lines.push(WinningLine {
@@ -171,8 +171,8 @@ impl SlotMachine {
 
             // Top-right to bottom-left
             let mut diagonal2 = Vec::new();
-            for i in 0..self.reels.len().min(self.rows) {
-                diagonal2.push(grid[i][self.rows - 1 - i].clone());
+            for (i, item) in grid.iter().enumerate().take(self.reels.len().min(self.rows)) {
+                diagonal2.push(item[self.rows - 1 - i].clone());
             }
             if let Some(win) = self.check_line(&diagonal2) {
                 winning_lines.push(WinningLine {

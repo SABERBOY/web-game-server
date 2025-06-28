@@ -145,7 +145,7 @@ impl UniversalSlotMachine {
         symbols
     }
 
-    fn check_standard_wins(&self, grid: &Vec<Vec<SlotSymbol>>) -> Vec<WinningLine> {
+    fn check_standard_wins(&self, grid: &[Vec<SlotSymbol>]) -> Vec<WinningLine> {
         let mut winning_lines = Vec::new();
 
         for payline in &self.paylines {
@@ -243,8 +243,8 @@ impl UniversalSlotMachine {
         let mut has_wild = false;
 
         // 检查从左到右的连续符号
-        for i in 1..symbols.len() {
-            let current = &symbols[i];
+        for item in symbols.iter().skip(1) {
+            let current = &item;
 
             if current.symbol_type == SymbolType::Wild && self.config.wild_enabled {
                 has_wild = true;
