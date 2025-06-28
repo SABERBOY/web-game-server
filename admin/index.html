@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot游戏配置管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #1a1a2e;
+            color: #eee;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .tabs {
+            display: flex;
+            background-color: #16213e;
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            background-color: #16213e;
+            color: #aaa;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .tab:hover {
+            background-color: #1f3a5f;
+            color: #fff;
+        }
+        
+        .tab.active {
+            background-color: #0f3460;
+            color: #e94560;
+            border-bottom: 3px solid #e94560;
+        }
+        
+        .tab-content {
+            background-color: #0f3460;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #e94560;
+            font-weight: 500;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #333;
+            background-color: #1a1a2e;
+            color: #fff;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+        
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        .checkbox-label {
+            display: inline-block;
+            color: #fff;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            background-color: #e94560;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #c13651;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .btn-secondary {
+            background-color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #555;
+        }
+        
+        .config-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .config-card {
+            background-color: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .config-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        
+        .config-card h3 {
+            color: #e94560;
+            margin-bottom: 10px;
+        }
+        
+        .config-card p {
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .payline-pattern {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .payline-pattern input {
+            width: 60px;
+        }
+        
+        .symbol-payouts {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+        
+        .symbol-payouts label {
+            margin-bottom: 5px;
+        }
+        
+        .symbol-payouts input {
+            width: 100%;
+        }
+        
+        #message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background-color: #4caf50;
+            color: white;
+            border-radius: 5px;
+            display: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        
+        #message.error {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎰 Slot游戏配置管理系统</h1>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('list-configs')">配置列表</button>
+            <button class="tab" onclick="showTab('create-config')">创建配置</button>
+            <button class="tab" onclick="showTab('manage-symbols')">符号管理</button>
+            <button class="tab" onclick="showTab('manage-reels')">卷轴管理</button>
+            <button class="tab" onclick="showTab('manage-paylines')">支付线管理</button>
+            <button class="tab" onclick="showTab('test-spin')">测试旋转</button>
+        </div>
+        
+        <!-- 配置列表 -->
+        <div id="list-configs" class="tab-content active">
+            <h2>Slot配置列表</h2>
+            <button class="btn" onclick="loadConfigs()">刷新列表</button>
+            <div id="config-list" class="config-list"></div>
+        </div>
+        
+        <!-- 创建配置 -->
+        <div id="create-config" class="tab-content">
+            <h2>创建新的Slot配置</h2>
+            <form id="create-config-form">
+                <div class="form-group">
+                    <label>配置名称</label>
+                    <input type="text" name="name" placeholder="例如：Lucky 777" required>
+                </div>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>行数 (Rows)</label>
+                        <input type="number" name="rows" value="3" min="1" max="10" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>卷轴数 (Reels)</label>
+                        <input type="number" name="reels" value="5" min="3" max="10" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <input type="checkbox" id="is_megaway" name="is_megaway">
+                    <label class="checkbox-label" for="is_megaway">启用Megaway模式</label>
+                </div>
+                
+                <div class="grid-2" id="megaway-options" style="display:none;">
+                    <div class="form-group">
+                        <label>最小Megaway行数</label>
+                        <input type="number" name="min_megaway_rows" value="2" min="2" max="6">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>最大Megaway行数</label>
+                        <input type="number" name="max_megaway_rows" value="7" min="3" max="10">
+                    </div>
+                </div>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>默认赌注</label>
+                        <input type="number" name="default_bet" value="1" min="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>最小赌注</label>
+                        <input type="number" name="min_bet" value="1" min="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>最大赌注</label>
+                        <input type="number" name="max_bet" value="1000" min="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>RTP百分比</label>
+                        <input type="number" name="rtp_percentage" value="96.00" step="0.01" min="80" max="99" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <input type="checkbox" id="wild_enabled" name="wild_enabled" checked>
+                    <label class="checkbox-label" for="wild_enabled">启用Wild符号</label>
+                </div>
+                
+                <div class="form-group">
+                    <input type="checkbox" id="free_spins_enabled" name="free_spins_enabled" checked>
+                    <label class="checkbox-label" for="free_spins_enabled">启用免费旋转</label>
+                </div>
+                
+                <button type="submit" class="btn">创建配置</button>
+            </form>
+        </div>
+        
+        <!-- 符号管理 -->
+        <div id="manage-symbols" class="tab-content">
+            <h2>符号管理</h2>
+            <div class="form-group">
+                <label>选择Slot配置</label>
+                <select id="symbol-config-select" onchange="loadSymbols()">
+                    <option value="">请选择配置</option>
+                </select>
+            </div>
+            
+            <h3>添加新符号</h3>
+            <form id="add-symbol-form">
+                <input type="hidden" id="symbol-config-id" name="slot_config_id">
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>符号名称</label>
+                        <input type="text" name="name" placeholder="例如：Cherry" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>符号类型</label>
+                        <select name="symbol_type" required>
+                            <option value="normal">普通符号</option>
+                            <option value="wild">Wild符号</option>
+                            <option value="scatter">Scatter符号</option>
+                            <option value="bonus">Bonus符号</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>符号价值</label>
+                        <input type="number" name="value" min="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>图片URL（可选）</label>
+                        <input type="text" name="image_url" placeholder="https://example.com/cherry.png">
+                    </div>
+                </div>
+                
+                <h4>赔付倍数</h4>
+                <div class="symbol-payouts">
+                    <div class="form-group">
+                        <label>2x连线</label>
+                        <input type="number" name="payout_2x" value="0" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>3x连线</label>
+                        <input type="number" name="payout_3x" value="0" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>4x连线</label>
+                        <input type="number" name="payout_4x" value="0" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>5x连线</label>
+                        <input type="number" name="payout_5x" value="0" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>6x连线</label>
+                        <input type="number" name="payout_6x" value="0" min="0">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn">添加符号</button>
+            </form>
+            
+            <h3>现有符号</h3>
+            <div id="symbols-list"></div>
+        </div>
+        
+        <!-- 卷轴管理 -->
+        <div id="manage-reels" class="tab-content">
+            <h2>卷轴管理</h2>
+            <div class="form-group">
+                <label>选择Slot配置</label>
+                <select id="reel-config-select" onchange="loadReels()">
+                    <option value="">请选择配置</option>
+                </select>
+            </div>
+            
+            <h3>配置卷轴符号</h3>
+            <form id="add-reel-symbol-form">
+                <input type="hidden" id="reel-config-id" name="slot_config_id">
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>卷轴编号（从0开始）</label>
+                        <input type="number" name="reel_number" min="0" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>位置（从0开始）</label>
+                        <input type="number" name="position" min="0" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>选择符号</label>
+                        <select id="reel-symbol-select" name="symbol_id" required>
+                            <option value="">请先选择配置</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>权重（出现频率）</label>
+                        <input type="number" name="weight" value="1" min="1" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn">配置卷轴符号</button>
+            </form>
+            
+            <h3>当前卷轴配置</h3>
+            <div id="reels-list"></div>
+        </div>
+        
+        <!-- 支付线管理 -->
+        <div id="manage-paylines" class="tab-content">
+            <h2>支付线管理</h2>
+            <div class="form-group">
+                <label>选择Slot配置</label>
+                <select id="payline-config-select" onchange="loadPaylines()">
+                    <option value="">请选择配置</option>
+                </select>
+            </div>
+            
+            <h3>添加支付线</h3>
+            <form id="add-payline-form">
+                <input type="hidden" id="payline-config-id" name="slot_config_id">
+                
+                <div class="form-group">
+                    <label>支付线编号</label>
+                    <input type="number" name="line_number" min="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>支付线模式（格式：卷轴,行 卷轴,行 ...）</label>
+                    <input type="text" name="pattern" placeholder="0,0 1,0 2,0 3,0 4,0" required>
+                    <small style="color: #aaa;">例如：0,0 1,0 2,0 3,0 4,0 表示第一行横线</small>
+                </div>
+                
+                <div class="form-group">
+                    <input type="checkbox" id="payline_active" name="is_active" checked>
+                    <label class="checkbox-label" for="payline_active">激活此支付线</label>
+                </div>
+                
+                <button type="submit" class="btn">添加支付线</button>
+            </form>
+            
+            <h3>现有支付线</h3>
+            <div id="paylines-list"></div>
+        </div>
+        
+        <!-- 测试旋转 -->
+        <div id="test-spin" class="tab-content">
+            <h2>测试旋转</h2>
+            <div class="form-group">
+                <label>选择Slot配置</label>
+                <select id="test-config-select">
+                    <option value="">请选择配置</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>每线赌注</label>
+                <input type="number" id="test-bet" value="1" min="1">
+            </div>
+            
+            <button class="btn" onclick="testSpin()">旋转</button>
+            
+            <div id="spin-result" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+    
+    <div id="message"></div>
+    
+    <script>
+        const API_BASE = '/api/slot-config';
+        
+        // 显示消息
+        function showMessage(text, isError = false) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = isError ? 'error' : '';
+            messageEl.style.display = 'block';
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 切换标签页
+        function showTab(tabId) {
+            // 隐藏所有标签页内容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 移除所有标签的激活状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的标签页
+            document.getElementById(tabId).classList.add('active');
+            
+            // 激活对应的标签
+            event.target.classList.add('active');
+            
+            // 加载相关数据
+            if (tabId === 'list-configs') {
+                loadConfigs();
+            } else if (tabId === 'manage-symbols' || tabId === 'manage-reels' || tabId === 'manage-paylines' || tabId === 'test-spin') {
+                loadConfigSelects();
+            }
+        }
+        
+        // 加载配置列表
+        async function loadConfigs() {
+            try {
+                const response = await fetch(API_BASE);
+                const configs = await response.json();
+                
+                const listEl = document.getElementById('config-list');
+                listEl.innerHTML = '';
+                
+                configs.forEach(config => {
+                    const card = document.createElement('div');
+                    card.className = 'config-card';
+                    card.innerHTML = `
+                        <h3>${config.name}</h3>
+                        <p><strong>尺寸：</strong> ${config.reels}x${config.rows}</p>
+                        <p><strong>模式：</strong> ${config.is_megaway ? 'Megaway' : '标准'}</p>
+                        <p><strong>RTP：</strong> ${config.rtp_percentage}%</p>
+                        <p><strong>赌注范围：</strong> ${config.min_bet} - ${config.max_bet}</p>
+                        <button class="btn btn-secondary" onclick="selectConfig(${config.id})">管理</button>
+                    `;
+                    listEl.appendChild(card);
+                });
+            } catch (error) {
+                showMessage('加载配置失败：' + error.message, true);
+            }
+        }
+        
+        // 加载配置选择框
+        async function loadConfigSelects() {
+            try {
+                const response = await fetch(API_BASE);
+                const configs = await response.json();
+                
+                const selects = ['symbol-config-select', 'reel-config-select', 'payline-config-select', 'test-config-select'];
+                
+                selects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    if (select) {
+                        select.innerHTML = '<option value="">请选择配置</option>';
+                        configs.forEach(config => {
+                            select.innerHTML += `<option value="${config.id}">${config.name}</option>`;
+                        });
+                    }
+                });
+            } catch (error) {
+                showMessage('加载配置列表失败：' + error.message, true);
+            }
+        }
+        
+        // 创建配置表单处理
+        document.getElementById('create-config-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {};
+            
+            formData.forEach((value, key) => {
+                if (key === 'is_megaway' || key === 'wild_enabled' || key === 'free_spins_enabled') {
+                    data[key] = e.target[key].checked;
+                } else if (key.includes('_') || key === 'rows' || key === 'reels') {
+                    data[key] = parseInt(value) || 0;
+                } else if (key === 'rtp_percentage') {
+                    data[key] = parseFloat(value);
+                } else {
+                    data[key] = value;
+                }
+            });
+            
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage('配置创建成功！');
+                    e.target.reset();
+                    loadConfigs();
+                } else {
+                    showMessage(result.error || '创建失败', true);
+                }
+            } catch (error) {
+                showMessage('创建配置失败：' + error.message, true);
+            }
+        });
+        
+        // Megaway选项显示/隐藏
+        document.getElementById('is_megaway').addEventListener('change', (e) => {
+            document.getElementById('megaway-options').style.display = e.target.checked ? 'grid' : 'none';
+        });
+        
+        // 加载符号列表
+        async function loadSymbols() {
+            const configId = document.getElementById('symbol-config-select').value;
+            if (!configId) return;
+            
+            document.getElementById('symbol-config-id').value = configId;
+            
+            try {
+                const response = await fetch(`${API_BASE}/${configId}/symbols`);
+                const symbols = await response.json();
+                
+                const listEl = document.getElementById('symbols-list');
+                listEl.innerHTML = '<h4>符号列表：</h4>';
+                
+                if (symbols.length === 0) {
+                    listEl.innerHTML += '<p>暂无符号</p>';
+                } else {
+                    const table = document.createElement('table');
+                    table.style.width = '100%';
+                    table.innerHTML = `
+                        <tr>
+                            <th>名称</th>
+                            <th>类型</th>
+                            <th>价值</th>
+                            <th>2x</th>
+                            <th>3x</th>
+                            <th>4x</th>
+                            <th>5x</th>
+                            <th>6x</th>
+                        </tr>
+                    `;
+                    
+                    symbols.forEach(symbol => {
+                        table.innerHTML += `
+                            <tr>
+                                <td>${symbol.name}</td>
+                                <td>${symbol.symbol_type}</td>
+                                <td>${symbol.value}</td>
+                                <td>${symbol.payout_2x || 0}</td>
+                                <td>${symbol.payout_3x || 0}</td>
+                                <td>${symbol.payout_4x || 0}</td>
+                                <td>${symbol.payout_5x || 0}</td>
+                                <td>${symbol.payout_6x || 0}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    listEl.appendChild(table);
+                }
+            } catch (error) {
+                showMessage('加载符号失败：' + error.message, true);
+            }
+        }
+        
+        // 添加符号表单处理
+        document.getElementById('add-symbol-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                slot_config_id: parseInt(formData.get('slot_config_id')),
+                name: formData.get('name'),
+                symbol_type: formData.get('symbol_type'),
+                value: parseInt(formData.get('value')),
+                image_url: formData.get('image_url') || null,
+                payouts: {}
+            };
+            
+            // 收集赔付数据
+            for (let i = 2; i <= 6; i++) {
+                const payout = parseInt(formData.get(`payout_${i}x`)) || 0;
+                if (payout > 0) {
+                    data.payouts[i] = payout;
+                }
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/symbol`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage('符号添加成功！');
+                    e.target.reset();
+                    loadSymbols();
+                } else {
+                    showMessage(result.error || '添加失败', true);
+                }
+            } catch (error) {
+                showMessage('添加符号失败：' + error.message, true);
+            }
+        });
+        
+        // 加载卷轴配置
+        async function loadReels() {
+            const configId = document.getElementById('reel-config-select').value;
+            if (!configId) return;
+            
+            document.getElementById('reel-config-id').value = configId;
+            
+            // 加载符号选择框
+            try {
+                const symbolsResponse = await fetch(`${API_BASE}/${configId}/symbols`);
+                const symbols = await symbolsResponse.json();
+                
+                const symbolSelect = document.getElementById('reel-symbol-select');
+                symbolSelect.innerHTML = '<option value="">选择符号</option>';
+                symbols.forEach(symbol => {
+                    symbolSelect.innerHTML += `<option value="${symbol.id}">${symbol.name} (${symbol.symbol_type})</option>`;
+                });
+                
+                // 加载卷轴配置
+                const reelsResponse = await fetch(`${API_BASE}/${configId}/reels`);
+                const reels = await reelsResponse.json();
+                
+                const listEl = document.getElementById('reels-list');
+                listEl.innerHTML = '<h4>卷轴配置：</h4>';
+                
+                if (reels.length === 0) {
+                    listEl.innerHTML += '<p>暂无卷轴配置</p>';
+                } else {
+                    // 按卷轴分组显示
+                    const reelGroups = {};
+                    reels.forEach(reel => {
+                        if (!reelGroups[reel.reel_number]) {
+                            reelGroups[reel.reel_number] = [];
+                        }
+                        reelGroups[reel.reel_number].push(reel);
+                    });
+                    
+                    Object.keys(reelGroups).sort((a, b) => parseInt(a) - parseInt(b)).forEach(reelNum => {
+                        const div = document.createElement('div');
+                        div.style.marginBottom = '20px';
+                        div.innerHTML = `<h5>卷轴 ${reelNum}：</h5>`;
+                        
+                        const table = document.createElement('table');
+                        table.style.width = '100%';
+                        table.innerHTML = `
+                            <tr>
+                                <th>位置</th>
+                                <th>符号</th>
+                                <th>权重</th>
+                            </tr>
+                        `;
+                        
+                        reelGroups[reelNum].sort((a, b) => a.position - b.position).forEach(reel => {
+                            table.innerHTML += `
+                                <tr>
+                                    <td>${reel.position}</td>
+                                    <td>${reel.symbol_name} (${reel.symbol_type})</td>
+                                    <td>${reel.weight}</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        div.appendChild(table);
+                        listEl.appendChild(div);
+                    });
+                }
+            } catch (error) {
+                showMessage('加载卷轴配置失败：' + error.message, true);
+            }
+        }
+        
+        // 添加卷轴符号表单处理
+        document.getElementById('add-reel-symbol-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                slot_config_id: parseInt(formData.get('slot_config_id')),
+                reel_number: parseInt(formData.get('reel_number')),
+                position: parseInt(formData.get('position')),
+                symbol_id: parseInt(formData.get('symbol_id')),
+                weight: parseInt(formData.get('weight'))
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/reel-symbol`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage('卷轴符号配置成功！');
+                    loadReels();
+                } else {
+                    showMessage(result.error || '配置失败', true);
+                }
+            } catch (error) {
+                showMessage('配置卷轴符号失败：' + error.message, true);
+            }
+        });
+        
+        // 加载支付线
+        async function loadPaylines() {
+            const configId = document.getElementById('payline-config-select').value;
+            if (!configId) return;
+            
+            document.getElementById('payline-config-id').value = configId;
+            
+            try {
+                const response = await fetch(`${API_BASE}/${configId}/paylines`);
+                const paylines = await response.json();
+                
+                const listEl = document.getElementById('paylines-list');
+                listEl.innerHTML = '<h4>支付线列表：</h4>';
+                
+                if (paylines.length === 0) {
+                    listEl.innerHTML += '<p>暂无支付线</p>';
+                } else {
+                    paylines.forEach(payline => {
+                        const div = document.createElement('div');
+                        div.style.marginBottom = '10px';
+                        div.innerHTML = `
+                            <strong>支付线 ${payline.line_number}：</strong> 
+                            ${JSON.stringify(payline.pattern)} 
+                            ${payline.is_active ? '(激活)' : '(未激活)'}
+                        `;
+                        listEl.appendChild(div);
+                    });
+                }
+            } catch (error) {
+                showMessage('加载支付线失败：' + error.message, true);
+            }
+        }
+        
+        // 添加支付线表单处理
+        document.getElementById('add-payline-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const patternStr = formData.get('pattern');
+            const pattern = patternStr.split(' ').map(pair => {
+                const [reel, row] = pair.split(',').map(n => parseInt(n));
+                return [reel, row];
+            });
+            
+            const data = {
+                slot_config_id: parseInt(formData.get('slot_config_id')),
+                line_number: parseInt(formData.get('line_number')),
+                pattern: pattern,
+                is_active: e.target.is_active.checked
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/payline`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage('支付线添加成功！');
+                    loadPaylines();
+                } else {
+                    showMessage(result.error || '添加失败', true);
+                }
+            } catch (error) {
+                showMessage('添加支付线失败：' + error.message, true);
+            }
+        });
+        
+        // 测试旋转
+        async function testSpin() {
+            const configId = document.getElementById('test-config-select').value;
+            const betPerLine = parseInt(document.getElementById('test-bet').value);
+            
+            if (!configId) {
+                showMessage('请选择配置', true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/spin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        slot_config_id: parseInt(configId),
+                        bet_per_line: betPerLine
+                    })
+                });
+                
+                const result = await response.json();
+                if (response.ok) {
+                    displaySpinResult(result);
+                } else {
+                    showMessage(result.error || '旋转失败', true);
+                }
+            } catch (error) {
+                showMessage('测试旋转失败：' + error.message, true);
+            }
+        }
+        
+        // 显示旋转结果
+        function displaySpinResult(result) {
+            const resultEl = document.getElementById('spin-result');
+            
+            let html = '<h3>旋转结果：</h3>';
+            
+            // 显示网格
+            html += '<div style="display: inline-block; background: #16213e; padding: 20px; border-radius: 10px;">';
+            
+            if (result.megaway_rows) {
+                html += '<p>Megaway行数：' + result.megaway_rows.join(', ') + '</p>';
+            }
+            
+            // 转置网格以正确显示
+            const maxRows = Math.max(...result.grid.map(col => col.length));
+            for (let row = 0; row < maxRows; row++) {
+                html += '<div style="display: flex; gap: 10px; margin-bottom: 10px;">';
+                for (let col = 0; col < result.grid.length; col++) {
+                    if (row < result.grid[col].length) {
+                        const symbol = result.grid[col][row];
+                        html += `<div style="width: 80px; height: 80px; background: #0f3460; color: #e94560; display: flex; align-items: center; justify-content: center; border-radius: 5px; font-weight: bold;">
+                            ${symbol.name}
+                        </div>`;
+                    } else {
+                        html += '<div style="width: 80px; height: 80px;"></div>';
+                    }
+                }
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            
+            // 显示获胜信息
+            html += '<div style="margin-top: 20px;">';
+            html += `<p><strong>赌注：</strong> ${result.bet_per_line}</p>`;
+            html += `<p><strong>获胜线数：</strong> ${result.winning_lines.length}</p>`;
+            html += `<p><strong>总赢金：</strong> ${result.total_win}</p>`;
+            html += `<p><strong>免费旋转：</strong> ${result.free_spins}</p>`;
+            
+            if (result.winning_lines.length > 0) {
+                html += '<h4>获胜线详情：</h4>';
+                result.winning_lines.forEach(line => {
+                    html += `<p>线 ${line.payline_number}: ${line.symbols.map(s => s.name).join(' - ')} = ${line.win_multiplier}x</p>`;
+                });
+            }
+            
+            html += '</div>';
+            
+            resultEl.innerHTML = html;
+        }
+        
+        // 页面加载时初始化
+        window.addEventListener('load', () => {
+            loadConfigs();
+        });
+    </script>
+</body>
+</html>
