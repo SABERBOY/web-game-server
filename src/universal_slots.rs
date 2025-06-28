@@ -208,6 +208,7 @@ impl UniversalSlotMachine {
         paths
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     fn find_paths_recursive(
         &self,
         grid: &Vec<Vec<SlotSymbol>>,
