@@ -56,8 +56,8 @@ impl Reel {
     }
     
     pub fn spin(&mut self) -> Symbol {
-        let mut rng = rand::thread_rng();
-        self.position = rng.gen_range(0..self.symbols.len());
+        let mut rng = rand::rng();
+        self.position = rng.random_range(0..self.symbols.len());
         self.symbols[self.position].clone()
     }
     
