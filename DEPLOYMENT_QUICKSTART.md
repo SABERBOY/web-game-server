@@ -33,13 +33,16 @@ cargo run
 ## 📋 可用的API端点
 
 ### 健康检查
+
 - `GET /health` - 检查服务状态
 
 ### 基础端点
+
 - `GET /` - 欢迎信息
 - `GET /{name}` - 个性化问候
 
 ### Todo管理
+
 - `GET /todos/{id}` - 获取待办事项
 - `POST /todos/add` - 添加待办事项
 - `PUT /todos/update/{id}` - 更新待办事项
@@ -47,6 +50,7 @@ cargo run
 - `GET /todos/list` - 列出所有待办事项
 
 ### 老虎机游戏
+
 - `POST /slots/spin` - 旋转老虎机
 - `GET /slots/jackpot` - 获取奖池信息
 - `GET /slots/rtp` - 获取返奖率
@@ -73,12 +77,14 @@ make fmt
 ## 🛠️ 故障排除
 
 ### 端口被占用
+
 ```bash
 # 修改 .env 文件中的 SERVER_PORT
 SERVER_PORT=8001
 ```
 
 ### 数据库连接失败
+
 ```bash
 # 检查数据库是否运行
 docker ps | grep postgres

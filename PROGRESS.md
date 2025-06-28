@@ -1,13 +1,16 @@
 # 项目进度更新 / Project Progress Update
 
 ## 项目概述 / Project Overview
+
 - **项目名称**: Saber (Web Game Server)
 - **技术栈**: Rust, Actix-web, PostgreSQL, Docker, Redis
 - **当前版本**: 0.3.0
 - **最后更新**: 2024-12-28
 
 ## 当前已完成功能 / Completed Features
+
 ✅ **基础设施**
+
 - [x] Rust项目结构初始化
 - [x] Actix-web服务器配置
 - [x] PostgreSQL数据库连接
@@ -20,6 +23,7 @@
 - [x] GitHub Actions CI/CD流程
 
 ✅ **API端点**
+
 - [x] GET /{id} - 根据ID获取待办事项
 - [x] POST /add - 添加新的待办事项
 - [x] PUT /update/{id} - 更新待办事项
@@ -29,6 +33,7 @@
 - [x] GET /{name} - 个性化问候
 
 ✅ **游戏功能 - 老虎机**
+
 - [x] 完整的老虎机算法实现
 - [x] POST /slots/spin - 旋转老虎机
 - [x] GET /slots/jackpot - 获取累积奖池信息
@@ -44,6 +49,7 @@
 - [x] **免费旋转功能**
 
 ✅ **Slot配置管理系统**
+
 - [x] 数据库表结构设计（slot配置、符号、卷轴、支付线）
 - [x] REST API端点
   - [x] POST /api/slot-config - 创建新配置
@@ -67,6 +73,7 @@
   - [x] 美观的UI界面
 
 ✅ **数据模型**
+
 - [x] Todo模型（id, note）
 - [x] 玩家表结构设计
 - [x] 游戏会话表
@@ -78,6 +85,7 @@
 - [x] **Slot支付线表**
 
 ✅ **DevOps和部署**
+
 - [x] Dockerfile多阶段构建配置
 - [x] Docker Compose完整编排
 - [x] 开发环境Docker配置
@@ -91,14 +99,18 @@
 - [x] **静态文件服务（管理后台）**
 
 ## 当前问题 / Current Issues  
+
 ✅ **已修复**
+
 - [x] "cuntom error"拼写错误已修复
 - [x] Shuttle部署代码已移除
 - [x] 数据库连接字符串已改为环境变量
 - [x] index和hello路由已恢复
 
 ## 待实现功能 / TODO Features
+
 📋 **短期目标** ✅ 已完成
+
 - [x] 修复拼写错误和代码清理
 - [x] 实现环境变量配置（数据库连接）
 - [x] 移除Shuttle功能
@@ -110,6 +122,7 @@
 - [x] **创建网页管理后台**
 
 📋 **中期目标** 🚧 进行中
+
 - [x] 将Todo系统扩展为游戏服务器功能
 - [ ] 实现用户认证系统
 - [x] 添加游戏相关的数据模型（玩家、游戏会话等）
@@ -120,6 +133,7 @@
 - [ ] **添加更多游戏主题模板**
 
 📋 **长期目标**
+
 - [ ] 完整的多人游戏支持
 - [ ] 排行榜系统
 - [x] 游戏数据持久化（数据库结构已设计）
@@ -132,6 +146,7 @@
 - [ ] **A/B测试系统**
 
 ## 最近更新 / Recent Updates
+
 - 2024-12-28: 实现通用slot架构，支持n*m形式
 - 2024-12-28: 添加Megaway模式支持
 - 2024-12-28: 创建网页管理后台系统
@@ -144,6 +159,7 @@
 - 2024-12-27: 添加GitHub Actions自动化构建
 
 ## 下一步行动 / Next Steps
+
 1. 将通用slot系统与用户认证系统集成
 2. 添加游戏会话管理，记录每次旋转
 3. 实现玩家余额管理
@@ -153,7 +169,8 @@
 7. 实现渐进式Web应用（PWA）支持
 
 ## 项目架构 / Project Architecture
-```
+
+```text
 Saber Game Server
 ├── 应用层
 │   ├── Rust + Actix-web
@@ -182,6 +199,7 @@ Saber Game Server
 ```
 
 ## 技术亮点 / Technical Highlights
+
 - **通用Slot架构**: 支持任意n*m尺寸的老虎机配置
 - **Megaway支持**: 实现了完整的Megaway游戏机制
 - **灵活配置系统**: 通过数据库配置实现游戏逻辑

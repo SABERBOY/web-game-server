@@ -23,31 +23,35 @@ A high-performance web game server built with Rust, featuring slot machine games
 
 ### Prerequisites
 
-- Rust 1.70+ 
+- Rust 1.70+
 - PostgreSQL 12+
 - Git
 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/yourusername/saber.git
 cd saber
 ```
 
 2. Set up environment variables:
+
 ```bash
 cp .env.example .env
 # Edit .env with your database credentials
 ```
 
 3. Set up the database:
+
 ```bash
 createdb saber
 psql saber < schema.sql
 ```
 
 4. Run the server:
+
 ```bash
 cargo run
 ```
@@ -72,6 +76,7 @@ The server will start at `http://127.0.0.1:8080`
 ### Slot Machine Endpoints
 
 #### Spin the Slots
+
 ```http
 POST /slots/spin
 Content-Type: application/json
@@ -82,6 +87,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "grid": [
@@ -99,11 +105,13 @@ Response:
 ```
 
 #### Get Jackpot Info
+
 ```http
 GET /slots/jackpot
 ```
 
 Response:
+
 ```json
 {
   "current_amount": 15000,
@@ -112,11 +120,13 @@ Response:
 ```
 
 #### Calculate RTP
+
 ```http
 GET /slots/rtp
 ```
 
 Response:
+
 ```json
 {
   "rtp_percentage": 96.5,
@@ -127,6 +137,7 @@ Response:
 ## Slot Machine Algorithm
 
 ### Symbols and Values
+
 - 🍒 Cherry: 2 credits
 - 🍋 Lemon: 3 credits
 - 🍊 Orange: 5 credits
@@ -137,6 +148,7 @@ Response:
 - 💎 Diamond: 50 credits
 
 ### Winning Combinations
+
 - **Three of a Kind**: Base multiplier × symbol value
 - **Two of a Kind**: Smaller multiplier × symbol value
 - **Three Sevens**: 100× bet
@@ -144,6 +156,7 @@ Response:
 - **Mixed Bars**: 5× bet
 
 ### Progressive Jackpot
+
 - 2% of each bet contributes to the jackpot
 - Minimum jackpot: 10,000 credits
 - Won by hitting three diamonds on any line
@@ -151,6 +164,7 @@ Response:
 ## Database Schema
 
 The project includes tables for:
+
 - **players**: User accounts and balances
 - **game_sessions**: Track player sessions
 - **slot_spin_history**: Record all spins
@@ -160,16 +174,19 @@ The project includes tables for:
 ## Development
 
 ### Running Tests
+
 ```bash
 cargo test
 ```
 
 ### Building for Production
+
 ```bash
 cargo build --release
 ```
 
 ### Environment Variables
+
 - `DATABASE_URL`: PostgreSQL connection string
 - `RUST_LOG`: Logging level (debug, info, warn, error)
 
@@ -178,6 +195,7 @@ cargo build --release
 Current version: **0.2.0**
 
 ### Completed Features ✅
+
 - Basic CRUD operations
 - Slot machine game implementation
 - Progressive jackpot system
@@ -185,6 +203,7 @@ Current version: **0.2.0**
 - Database schema design
 
 ### Upcoming Features 🚀
+
 - User authentication system
 - WebSocket support for real-time gaming
 - Additional game types (Poker, Blackjack)
