@@ -69,7 +69,7 @@ impl UniversalSlotMachine {
     }
 
     pub fn spin(&self, bet_per_line: u32) -> UniversalSpinResult {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut grid = Vec::new();
         let mut megaway_rows = Vec::new();
 
@@ -77,7 +77,7 @@ impl UniversalSlotMachine {
         for reel_strip in &self.reel_strips {
             let reel_symbols = if self.config.is_megaway {
                 // Megaway模式：每个卷轴的行数随机
-                let rows = rng.gen_range(self.config.min_megaway_rows..=self.config.max_megaway_rows);
+                let rows = rng.random_range(self.config.min_megaway_rows..=self.config.max_megaway_rows);
                 megaway_rows.push(rows);
                 self.spin_reel(&reel_strip, rows)
             } else {
@@ -115,7 +115,7 @@ impl UniversalSlotMachine {
     }
 
     fn spin_reel(&self, reel_strip: &ReelStrip, rows: usize) -> Vec<SlotSymbol> {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut symbols = Vec::new();
         
         // 创建加权符号池
@@ -128,7 +128,7 @@ impl UniversalSlotMachine {
 
         // 随机选择符号
         for _ in 0..rows {
-            let idx = rng.gen_range(0..weighted_symbols.len());
+            let idx = rng.random_range(0..weighted_symbols.len());
             symbols.push(weighted_symbols[idx].clone());
         }
 
