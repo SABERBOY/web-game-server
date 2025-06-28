@@ -10,8 +10,11 @@ use sqlx::{Executor, FromRow, PgPool, Pool, Postgres};
 use dotenv::dotenv;
 use std::env;
 use std::sync::Mutex;
+use actix_files as fs;
 
 mod slots;
+mod universal_slots;
+mod slot_config_api;
 use slots::{SlotMachine, ProgressiveJackpot};
 
 #[get("/{id}")]
@@ -258,8 +261,8 @@ async fn establish_connection() -> Result<Pool<Postgres>, sqlx::Error> {
     Ok(pool)
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
     env_logger::init();
     let pool = establish_connection().await?;
     
@@ -302,6 +305,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .service(get_jackpot)
                     .service(calculate_slot_rtp)
             )
+            .service(
+                web::scope("/api/slot-config")
+                    .route("", web::post().to(slot_config_api::create_slot_config))
+                    .route("", web::get().to(slot_config_api::list_slot_configs))
+                    .route("/{id}", web::get().to(slot_config_api::get_slot_config))
+                    .route("/symbol", web::post().to(slot_config_api::add_symbol))
+                    .route("/reel-symbol", web::post().to(slot_config_api::add_reel_symbol))
+                    .route("/payline", web::post().to(slot_config_api::add_payline))
+                    .route("/{id}/symbols", web::get().to(slot_config_api::get_slot_symbols))
+                    .route("/{id}/reels", web::get().to(slot_config_api::get_slot_reels))
+                    .route("/{id}/paylines", web::get().to(slot_config_api::get_slot_paylines))
+                    .route("/spin", web::post().to(slot_config_api::test_spin))
+            )
+            .service(fs::Files::new("/admin", "./admin").index_file("index.html"))
             .app_data(state.clone())
             .app_data(slot_machine.clone())
             .app_data(jackpot.clone())
