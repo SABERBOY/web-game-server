@@ -85,10 +85,10 @@ impl UniversalSlotMachine {
                 let rows =
                     rng.random_range(self.config.min_megaway_rows..=self.config.max_megaway_rows);
                 megaway_rows.push(rows);
-                self.spin_reel(&reel_strip, rows)
+                self.spin_reel(reel_strip, rows)
             } else {
                 // 标准模式：固定行数
-                self.spin_reel(&reel_strip, self.config.rows)
+                self.spin_reel(reel_strip, self.config.rows)
             };
             grid.push(reel_symbols);
         }

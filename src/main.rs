@@ -182,13 +182,10 @@ async fn spin_slots(
     let result = machine.spin();
 
     // Check for jackpot win (three diamonds on center line)
-    let is_jackpot = matches!(
-        result
+    let is_jackpot = result
             .winning_lines
             .iter()
-            .find(|line| matches!(&line.win_type, slots::WinType::ThreeDiamonds)),
-        Some(_)
-    );
+            .any(|line| matches!(&line.win_type, slots::WinType::ThreeDiamonds));
 
     let jackpot_win = jackpot.check_and_award(is_jackpot);
 

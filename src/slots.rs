@@ -135,14 +135,14 @@ impl SlotMachine {
         }
     }
 
-    fn check_winning_lines(&self, grid: &Vec<Vec<Symbol>>) -> Vec<WinningLine> {
+    fn check_winning_lines(&self, grid: &[Vec<Symbol>]) -> Vec<WinningLine> {
         let mut winning_lines = Vec::new();
 
         // Check horizontal lines
         for row in 0..self.rows {
             let mut line_symbols = Vec::new();
-            for col in 0..self.reels.len() {
-                line_symbols.push(grid[col][row].clone());
+            for col_symbols in grid {
+                line_symbols.push(col_symbols[row].clone());
             }
 
             if let Some(win) = self.check_line(&line_symbols) {
