@@ -1,0 +1,40 @@
+# Git相关
+.git
+.gitignore
+
+# 开发和编辑器文件
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Rust构建产物
+target/
+Cargo.lock
+
+# 环境变量文件
+.env
+.env.*
+
+# 文档
+README.md
+PROGRESS.md
+*.md
+
+# Docker相关
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# 日志文件
+logs/
+*.log
+
+# 测试和基准测试
+tests/
+benches/
+
+# 其他
+.DS_Store
+Thumbs.db

@@ -130,6 +130,31 @@ async fn index() -> impl Responder {
     "Hello, World!"
 }
 
+#[get("/health")]
+async fn health_check(state: web::Data<AppState>) -> Result<Json<serde_json::Value>> {
+    // Check database connection
+    let db_check = sqlx::query("SELECT 1")
+        .fetch_one(&state.pool)
+        .await
+        .is_ok();
+    
+    let health_status = serde_json::json!({
+        "status": if db_check { "healthy" } else { "unhealthy" },
+        "timestamp": chrono::Utc::now(),
+        "checks": {
+            "database": {
+                "status": if db_check { "up" } else { "down" }
+            }
+        }
+    });
+    
+    if db_check {
+        Ok(Json(health_status))
+    } else {
+        Err(error::ErrorServiceUnavailable(health_status))
+    }
+}
+
 #[get("/{name}")]
 async fn hello(name: web::Path<String>) -> impl Responder {
     format!("Hello {}!", &name)
@@ -248,12 +273,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         jackpot: jackpot.clone(),
     });
     
-    println!("Server starting at http://127.0.0.1:8080");
+    // Get host and port from environment variables
+    let host = env::var("SERVER_HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
+    let port = env::var("SERVER_PORT")
+        .unwrap_or_else(|_| "8000".to_string())
+        .parse::<u16>()
+        .unwrap_or(8000);
+    
+    println!("Server starting at http://{}:{}", host, port);
     
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
             .service(index)
+            .service(health_check)
             .service(hello)
             .service(
                 web::scope("/todos")
@@ -273,7 +306,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .app_data(slot_machine.clone())
             .app_data(jackpot.clone())
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind((host.as_str(), port))?
     .run()
     .await?;
     
