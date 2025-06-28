@@ -98,7 +98,30 @@ pub async fn list_slot_configs(
     .await;
 
     match configs {
-        Ok(configs) => Ok(HttpResponse::Ok().json(configs)),
+        Ok(configs) => {
+            let serializable_configs: Vec<serde_json::Value> = configs
+                .into_iter()
+                .map(|config| serde_json::json!({
+                    "id": config.id,
+                    "name": config.name,
+                    "rows": config.rows,
+                    "reels": config.reels,
+                    "is_megaway": config.is_megaway,
+                    "min_megaway_rows": config.min_megaway_rows,
+                    "max_megaway_rows": config.max_megaway_rows,
+                    "default_bet": config.default_bet,
+                    "min_bet": config.min_bet,
+                    "max_bet": config.max_bet,
+                    "wild_enabled": config.wild_enabled,
+                    "free_spins_enabled": config.free_spins_enabled,
+                    "rtp_percentage": config.rtp_percentage.map(|r| r.to_string()),
+                    "is_active": config.is_active,
+                    "created_at": config.created_at.map(|t| t.to_string()),
+                    "updated_at": config.updated_at.map(|t| t.to_string())
+                }))
+                .collect();
+            Ok(HttpResponse::Ok().json(serializable_configs))
+        },
         Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": format!("Failed to fetch slot configurations: {}", e)
         }))),
@@ -120,7 +143,27 @@ pub async fn get_slot_config(
     .await;
 
     match config {
-        Ok(config) => Ok(HttpResponse::Ok().json(config)),
+        Ok(config) => {
+            let serializable_config = serde_json::json!({
+                "id": config.id,
+                "name": config.name,
+                "rows": config.rows,
+                "reels": config.reels,
+                "is_megaway": config.is_megaway,
+                "min_megaway_rows": config.min_megaway_rows,
+                "max_megaway_rows": config.max_megaway_rows,
+                "default_bet": config.default_bet,
+                "min_bet": config.min_bet,
+                "max_bet": config.max_bet,
+                "wild_enabled": config.wild_enabled,
+                "free_spins_enabled": config.free_spins_enabled,
+                "rtp_percentage": config.rtp_percentage.map(|r| r.to_string()),
+                "is_active": config.is_active,
+                "created_at": config.created_at.map(|t| t.to_string()),
+                "updated_at": config.updated_at.map(|t| t.to_string())
+            });
+            Ok(HttpResponse::Ok().json(serializable_config))
+        },
         Err(e) => Ok(HttpResponse::NotFound().json(serde_json::json!({
             "error": format!("Slot configuration not found: {}", e)
         }))),
@@ -263,7 +306,26 @@ pub async fn get_slot_symbols(
     .await;
 
     match symbols {
-        Ok(symbols) => Ok(HttpResponse::Ok().json(symbols)),
+        Ok(symbols) => {
+            let serializable_symbols: Vec<serde_json::Value> = symbols
+                .into_iter()
+                .map(|symbol| serde_json::json!({
+                    "id": symbol.id,
+                    "slot_config_id": symbol.slot_config_id,
+                    "name": symbol.name,
+                    "symbol_type": symbol.symbol_type,
+                    "value": symbol.value,
+                    "image_url": symbol.image_url,
+                    "payout_2x": symbol.payout_2x,
+                    "payout_3x": symbol.payout_3x,
+                    "payout_4x": symbol.payout_4x,
+                    "payout_5x": symbol.payout_5x,
+                    "payout_6x": symbol.payout_6x,
+                    "created_at": symbol.created_at.map(|t| t.to_string())
+                }))
+                .collect();
+            Ok(HttpResponse::Ok().json(serializable_symbols))
+        },
         Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": format!("Failed to fetch symbols: {}", e)
         }))),
@@ -291,7 +353,22 @@ pub async fn get_slot_reels(
     .await;
 
     match reels {
-        Ok(reels) => Ok(HttpResponse::Ok().json(reels)),
+        Ok(reels) => {
+            let serializable_reels: Vec<serde_json::Value> = reels
+                .into_iter()
+                .map(|reel| serde_json::json!({
+                    "id": reel.id,
+                    "slot_config_id": reel.slot_config_id,
+                    "reel_number": reel.reel_number,
+                    "position": reel.position,
+                    "symbol_id": reel.symbol_id,
+                    "weight": reel.weight,
+                    "symbol_name": reel.symbol_name,
+                    "symbol_type": reel.symbol_type
+                }))
+                .collect();
+            Ok(HttpResponse::Ok().json(serializable_reels))
+        },
         Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": format!("Failed to fetch reel configuration: {}", e)
         }))),
@@ -313,7 +390,19 @@ pub async fn get_slot_paylines(
     .await;
 
     match paylines {
-        Ok(paylines) => Ok(HttpResponse::Ok().json(paylines)),
+        Ok(paylines) => {
+            let serializable_paylines: Vec<serde_json::Value> = paylines
+                .into_iter()
+                .map(|payline| serde_json::json!({
+                    "id": payline.id,
+                    "slot_config_id": payline.slot_config_id,
+                    "line_number": payline.line_number,
+                    "pattern": payline.pattern,
+                    "is_active": payline.is_active
+                }))
+                .collect();
+            Ok(HttpResponse::Ok().json(serializable_paylines))
+        },
         Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": format!("Failed to fetch paylines: {}", e)
         }))),
@@ -393,7 +482,7 @@ pub async fn build_slot_machine(
         reel_compositions
             .entry(record.reel_number as usize)
             .or_insert_with(Vec::new)
-            .push((record.symbol_id, record.weight as u32));
+            .push((record.symbol_id.unwrap_or(0), record.weight.unwrap_or(1) as u32));
     }
 
     // 获取支付线
@@ -418,7 +507,7 @@ pub async fn build_slot_machine(
         paylines.push(Payline {
             line_number: record.line_number as usize,
             pattern: pattern_tuples,
-            is_active: record.is_active,
+            is_active: record.is_active.unwrap_or(false),
         });
     }
 
@@ -428,15 +517,15 @@ pub async fn build_slot_machine(
         name: config.name,
         rows: config.rows as usize,
         reels: config.reels as usize,
-        is_megaway: config.is_megaway,
-        min_megaway_rows: config.min_megaway_rows as usize,
-        max_megaway_rows: config.max_megaway_rows as usize,
-        default_bet: config.default_bet as u32,
-        min_bet: config.min_bet as u32,
-        max_bet: config.max_bet as u32,
-        wild_enabled: config.wild_enabled,
-        free_spins_enabled: config.free_spins_enabled,
-        rtp_percentage: config.rtp_percentage.to_string().parse::<f64>().unwrap_or(96.0),
+        is_megaway: config.is_megaway.unwrap_or(false),
+        min_megaway_rows: config.min_megaway_rows.unwrap_or(2) as usize,
+        max_megaway_rows: config.max_megaway_rows.unwrap_or(7) as usize,
+        default_bet: config.default_bet.unwrap_or(1) as u32,
+        min_bet: config.min_bet.unwrap_or(1) as u32,
+        max_bet: config.max_bet.unwrap_or(1000) as u32,
+        wild_enabled: config.wild_enabled.unwrap_or(false),
+        free_spins_enabled: config.free_spins_enabled.unwrap_or(false),
+        rtp_percentage: config.rtp_percentage.map(|r| r.to_string().parse::<f64>().unwrap_or(96.0)).unwrap_or(96.0),
     };
 
     let builder = SlotConfigBuilder {
