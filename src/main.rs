@@ -264,7 +264,7 @@ async fn establish_connection() -> Result<Pool<Postgres>, sqlx::Error> {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     env_logger::init();
-    let pool = establish_connection().await?;
+    let pool = establish_connection().await.unwrap();
     
     // Initialize slot machine and jackpot
     let slot_machine = web::Data::new(Mutex::new(SlotMachine::new(3, 3)));
