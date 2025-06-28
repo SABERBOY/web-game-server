@@ -96,8 +96,8 @@ enum MyError {
 impl std::fmt::Display for MyError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            MyError::SqlxError(e) => write!(f, "sqlx error: {}", e),
-            MyError::IoError(e) => write!(f, "io error: {}", e),
+            MyError::SqlxError(e) => write!(f, "sqlx error: {e}"),
+            MyError::IoError(e) => write!(f, "io error: {e}"),
         }
     }
 }
@@ -183,9 +183,9 @@ async fn spin_slots(
 
     // Check for jackpot win (three diamonds on center line)
     let is_jackpot = result
-            .winning_lines
-            .iter()
-            .any(|line| matches!(&line.win_type, slots::WinType::ThreeDiamonds));
+        .winning_lines
+        .iter()
+        .any(|line| matches!(&line.win_type, slots::WinType::ThreeDiamonds));
 
     let jackpot_win = jackpot.check_and_award(is_jackpot);
 
@@ -285,7 +285,7 @@ async fn main() -> std::io::Result<()> {
         .parse::<u16>()
         .unwrap_or(8000);
 
-    println!("Server starting at http://{}:{}", host, port);
+    println!("Server starting at http://{host}:{port}");
 
     HttpServer::new(move || {
         App::new()

@@ -418,7 +418,7 @@ pub async fn build_slot_machine(
     let config = sqlx::query!("SELECT * FROM slot_configurations WHERE id = $1", config_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| format!("Failed to fetch config: {}", e))?;
+        .map_err(|e| format!("Failed to fetch config: {e}"))?;
 
     // 获取符号
     let symbol_records = sqlx::query!(
@@ -427,7 +427,7 @@ pub async fn build_slot_machine(
     )
     .fetch_all(pool)
     .await
-    .map_err(|e| format!("Failed to fetch symbols: {}", e))?;
+    .map_err(|e| format!("Failed to fetch symbols: {e}"))?;
 
     let mut symbols = Vec::new();
     for record in symbol_records {
@@ -472,7 +472,7 @@ pub async fn build_slot_machine(
     )
     .fetch_all(pool)
     .await
-    .map_err(|e| format!("Failed to fetch reels: {}", e))?;
+    .map_err(|e| format!("Failed to fetch reels: {e}"))?;
 
     let mut reel_compositions = HashMap::new();
     for record in reel_records {
@@ -492,12 +492,12 @@ pub async fn build_slot_machine(
     )
     .fetch_all(pool)
     .await
-    .map_err(|e| format!("Failed to fetch paylines: {}", e))?;
+    .map_err(|e| format!("Failed to fetch paylines: {e}"))?;
 
     let mut paylines = Vec::new();
     for record in payline_records {
         let pattern: Vec<Vec<i32>> = serde_json::from_value(record.pattern)
-            .map_err(|e| format!("Failed to parse payline pattern: {}", e))?;
+            .map_err(|e| format!("Failed to parse payline pattern: {e}"))?;
 
         let pattern_tuples: Vec<(usize, usize)> = pattern
             .into_iter()

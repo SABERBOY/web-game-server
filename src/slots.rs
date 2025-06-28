@@ -333,7 +333,7 @@ mod tests {
     #[test]
     fn test_rtp_calculation() {
         let rtp = calculate_rtp(100000);
-        println!("RTP over 100000 spins: {:.2}%", rtp);
+        println!("RTP over 100000 spins: {rtp:.2}%");
         // RTP should be between 75% and 105% for a fair slot machine
         // Allow variance for randomness in testing
         assert!(rtp > 75.0 && rtp < 105.0);
