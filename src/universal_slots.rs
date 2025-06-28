@@ -59,7 +59,12 @@ pub struct UniversalSlotMachine {
 }
 
 impl UniversalSlotMachine {
-    pub fn new(config: SlotConfig, symbols: Vec<SlotSymbol>, reel_strips: Vec<ReelStrip>, paylines: Vec<Payline>) -> Self {
+    pub fn new(
+        config: SlotConfig,
+        symbols: Vec<SlotSymbol>,
+        reel_strips: Vec<ReelStrip>,
+        paylines: Vec<Payline>,
+    ) -> Self {
         Self {
             config,
             symbols,
@@ -77,7 +82,8 @@ impl UniversalSlotMachine {
         for reel_strip in &self.reel_strips {
             let reel_symbols = if self.config.is_megaway {
                 // Megaway模式：每个卷轴的行数随机
-                let rows = rng.random_range(self.config.min_megaway_rows..=self.config.max_megaway_rows);
+                let rows =
+                    rng.random_range(self.config.min_megaway_rows..=self.config.max_megaway_rows);
                 megaway_rows.push(rows);
                 self.spin_reel(&reel_strip, rows)
             } else {
@@ -106,7 +112,11 @@ impl UniversalSlotMachine {
 
         UniversalSpinResult {
             grid,
-            megaway_rows: if self.config.is_megaway { Some(megaway_rows) } else { None },
+            megaway_rows: if self.config.is_megaway {
+                Some(megaway_rows)
+            } else {
+                None
+            },
             winning_lines,
             total_win,
             free_spins,
@@ -117,7 +127,7 @@ impl UniversalSlotMachine {
     fn spin_reel(&self, reel_strip: &ReelStrip, rows: usize) -> Vec<SlotSymbol> {
         let mut rng = rand::rng();
         let mut symbols = Vec::new();
-        
+
         // 创建加权符号池
         let mut weighted_symbols = Vec::new();
         for (symbol, weight) in &reel_strip.symbols {
@@ -164,11 +174,11 @@ impl UniversalSlotMachine {
 
     fn check_megaway_wins(&self, grid: &Vec<Vec<SlotSymbol>>) -> Vec<WinningLine> {
         let mut winning_lines = Vec::new();
-        
+
         // Megaway使用从左到右的连续符号计算
         // 计算所有可能的路径
         let paths = self.calculate_megaway_paths(grid);
-        
+
         for (path_idx, path) in paths.iter().enumerate() {
             let mut line_symbols = Vec::new();
             for &(reel_idx, row_idx) in path {
@@ -189,12 +199,12 @@ impl UniversalSlotMachine {
 
     fn calculate_megaway_paths(&self, grid: &Vec<Vec<SlotSymbol>>) -> Vec<Vec<(usize, usize)>> {
         let mut paths = Vec::new();
-        
+
         // 从第一个卷轴的每个符号开始
         for start_row in 0..grid[0].len() {
             self.find_paths_recursive(grid, 0, start_row, vec![(0, start_row)], &mut paths);
         }
-        
+
         paths
     }
 
@@ -204,7 +214,7 @@ impl UniversalSlotMachine {
         reel_idx: usize,
         _row_idx: usize,
         current_path: Vec<(usize, usize)>,
-        paths: &mut Vec<Vec<(usize, usize)>>
+        paths: &mut Vec<Vec<(usize, usize)>>,
     ) {
         // 如果到达最后一个卷轴，保存路径
         if reel_idx == grid.len() - 1 {
@@ -235,12 +245,13 @@ impl UniversalSlotMachine {
         // 检查从左到右的连续符号
         for i in 1..symbols.len() {
             let current = &symbols[i];
-            
+
             if current.symbol_type == SymbolType::Wild && self.config.wild_enabled {
                 has_wild = true;
                 consecutive_count += 1;
-            } else if current.name == first_symbol.name || 
-                     (first_symbol.symbol_type == SymbolType::Wild && self.config.wild_enabled) {
+            } else if current.name == first_symbol.name
+                || (first_symbol.symbol_type == SymbolType::Wild && self.config.wild_enabled)
+            {
                 consecutive_count += 1;
             } else {
                 break;
@@ -259,7 +270,11 @@ impl UniversalSlotMachine {
 
             if let Some(&payout) = base_symbol.payouts.get(&consecutive_count) {
                 // 如果有Wild，可能增加赔付
-                let multiplier = if has_wild && !self.config.is_megaway { 2 } else { 1 };
+                let multiplier = if has_wild && !self.config.is_megaway {
+                    2
+                } else {
+                    1
+                };
                 return Some(payout * multiplier);
             }
         }
@@ -269,7 +284,7 @@ impl UniversalSlotMachine {
 
     fn check_free_spins(&self, grid: &Vec<Vec<SlotSymbol>>) -> u32 {
         let mut scatter_count = 0;
-        
+
         // 计算Scatter符号数量
         for reel in grid {
             for symbol in reel {
@@ -337,18 +352,18 @@ pub struct SlotConfigBuilder {
 impl SlotConfigBuilder {
     pub fn build(self) -> UniversalSlotMachine {
         let mut reel_strips = Vec::new();
-        
+
         // 构建卷轴条
         for i in 0..self.config.reels {
             if let Some(compositions) = self.reel_compositions.get(&i) {
                 let mut symbols_with_weights = Vec::new();
-                
+
                 for (symbol_id, weight) in compositions {
                     if let Some(symbol) = self.symbols.iter().find(|s| s.id == *symbol_id) {
                         symbols_with_weights.push((symbol.clone(), *weight));
                     }
                 }
-                
+
                 reel_strips.push(ReelStrip {
                     reel_number: i,
                     symbols: symbols_with_weights,
@@ -407,12 +422,8 @@ mod tests {
             is_active: true,
         };
 
-        let machine = UniversalSlotMachine::new(
-            config,
-            vec![symbol],
-            vec![reel_strip; 5],
-            vec![payline],
-        );
+        let machine =
+            UniversalSlotMachine::new(config, vec![symbol], vec![reel_strip; 5], vec![payline]);
 
         assert_eq!(machine.config.reels, 5);
         assert_eq!(machine.config.rows, 3);

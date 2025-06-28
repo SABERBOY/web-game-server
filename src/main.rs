@@ -1,21 +1,21 @@
+use actix_files as fs;
 use actix_web::middleware::Logger;
 use actix_web::{
-    error, get, post, put, delete,
+    delete, error, get, post, put,
     web::{self, Json},
     App, HttpServer, Responder, Result,
 };
+use dotenv::dotenv;
 use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Executor, FromRow, PgPool, Pool, Postgres};
-use dotenv::dotenv;
 use std::env;
 use std::sync::Mutex;
-use actix_files as fs;
 
+mod slot_config_api;
 mod slots;
 mod universal_slots;
-mod slot_config_api;
-use slots::{SlotMachine, ProgressiveJackpot};
+use slots::{ProgressiveJackpot, SlotMachine};
 
 #[get("/{id}")]
 async fn retrieve(path: web::Path<i32>, state: web::Data<AppState>) -> Result<Json<Todo>> {
@@ -55,18 +55,22 @@ async fn update_todo(
     todo: web::Json<TodoNew>,
     state: web::Data<AppState>,
 ) -> Result<Json<Todo>> {
-    let updated_todo = sqlx::query_as("UPDATE todos SET note = $1 WHERE id = $2 RETURNING id, note")
-        .bind(&todo.note)
-        .bind(*path)
-        .fetch_one(&state.pool)
-        .await
-        .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
+    let updated_todo =
+        sqlx::query_as("UPDATE todos SET note = $1 WHERE id = $2 RETURNING id, note")
+            .bind(&todo.note)
+            .bind(*path)
+            .fetch_one(&state.pool)
+            .await
+            .map_err(|e| error::ErrorBadRequest(e.to_string()))?;
 
     Ok(Json(updated_todo))
 }
 
 #[delete("/delete/{id}")]
-async fn delete_todo(path: web::Path<i32>, state: web::Data<AppState>) -> Result<Json<serde_json::Value>> {
+async fn delete_todo(
+    path: web::Path<i32>,
+    state: web::Data<AppState>,
+) -> Result<Json<serde_json::Value>> {
     let result = sqlx::query("DELETE FROM todos WHERE id = $1")
         .bind(*path)
         .execute(&state.pool)
@@ -77,7 +81,9 @@ async fn delete_todo(path: web::Path<i32>, state: web::Data<AppState>) -> Result
         return Err(error::ErrorNotFound("Todo not found"));
     }
 
-    Ok(Json(serde_json::json!({"message": "Todo deleted successfully"})))
+    Ok(Json(
+        serde_json::json!({"message": "Todo deleted successfully"}),
+    ))
 }
 
 // custom error
@@ -136,11 +142,8 @@ async fn index() -> impl Responder {
 #[get("/health")]
 async fn health_check(state: web::Data<AppState>) -> Result<Json<serde_json::Value>> {
     // Check database connection
-    let db_check = sqlx::query("SELECT 1")
-        .fetch_one(&state.pool)
-        .await
-        .is_ok();
-    
+    let db_check = sqlx::query("SELECT 1").fetch_one(&state.pool).await.is_ok();
+
     let health_status = serde_json::json!({
         "status": if db_check { "healthy" } else { "unhealthy" },
         "timestamp": chrono::Utc::now(),
@@ -150,7 +153,7 @@ async fn health_check(state: web::Data<AppState>) -> Result<Json<serde_json::Val
             }
         }
     });
-    
+
     if db_check {
         Ok(Json(health_status))
     } else {
@@ -171,21 +174,24 @@ async fn spin_slots(
 ) -> Result<Json<slots::SpinResult>> {
     let mut machine = state.slot_machine.lock().unwrap();
     let mut jackpot = state.jackpot.lock().unwrap();
-    
+
     // Add bet to progressive jackpot
     jackpot.add_contribution(bet.amount);
-    
+
     // Spin the slot machine
     let result = machine.spin();
-    
+
     // Check for jackpot win (three diamonds on center line)
     let is_jackpot = matches!(
-        result.winning_lines.iter().find(|line| matches!(&line.win_type, slots::WinType::ThreeDiamonds)),
+        result
+            .winning_lines
+            .iter()
+            .find(|line| matches!(&line.win_type, slots::WinType::ThreeDiamonds)),
         Some(_)
     );
-    
+
     let jackpot_win = jackpot.check_and_award(is_jackpot);
-    
+
     // Create enhanced result with jackpot info
     let enhanced_result = SpinResultWithJackpot {
         grid: result.grid,
@@ -193,7 +199,7 @@ async fn spin_slots(
         total_win: result.total_win + jackpot_win.unwrap_or(0) as u32,
         jackpot_win,
     };
-    
+
     Ok(Json(slots::SpinResult {
         grid: enhanced_result.grid,
         winning_lines: enhanced_result.winning_lines,
@@ -248,16 +254,15 @@ async fn establish_connection() -> Result<Pool<Postgres>, sqlx::Error> {
     dotenv().ok();
     let database_url = env::var("DATABASE_URL")
         .unwrap_or_else(|_| "postgres://postgres:password@localhost:5432/saber".to_string());
-    
+
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(&database_url)
         .await?;
-    
+
     // Initialize database schema
-    pool.execute(include_str!("../schema.sql"))
-        .await?;
-    
+    pool.execute(include_str!("../schema.sql")).await?;
+
     Ok(pool)
 }
 
@@ -265,26 +270,26 @@ async fn establish_connection() -> Result<Pool<Postgres>, sqlx::Error> {
 async fn main() -> std::io::Result<()> {
     env_logger::init();
     let pool = establish_connection().await.unwrap();
-    
+
     // Initialize slot machine and jackpot
     let slot_machine = web::Data::new(Mutex::new(SlotMachine::new(3, 3)));
     let jackpot = web::Data::new(Mutex::new(ProgressiveJackpot::new(10000, 0.02)));
-    
-    let state = web::Data::new(AppState { 
+
+    let state = web::Data::new(AppState {
         pool,
         slot_machine: slot_machine.clone(),
         jackpot: jackpot.clone(),
     });
-    
+
     // Get host and port from environment variables
     let host = env::var("SERVER_HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
     let port = env::var("SERVER_PORT")
         .unwrap_or_else(|_| "8000".to_string())
         .parse::<u16>()
         .unwrap_or(8000);
-    
+
     println!("Server starting at http://{}:{}", host, port);
-    
+
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
@@ -297,13 +302,13 @@ async fn main() -> std::io::Result<()> {
                     .service(add)
                     .service(list_todos)
                     .service(update_todo)
-                    .service(delete_todo)
+                    .service(delete_todo),
             )
             .service(
                 web::scope("/slots")
                     .service(spin_slots)
                     .service(get_jackpot)
-                    .service(calculate_slot_rtp)
+                    .service(calculate_slot_rtp),
             )
             .service(
                 web::scope("/api/slot-config")
@@ -311,12 +316,24 @@ async fn main() -> std::io::Result<()> {
                     .route("", web::get().to(slot_config_api::list_slot_configs))
                     .route("/{id}", web::get().to(slot_config_api::get_slot_config))
                     .route("/symbol", web::post().to(slot_config_api::add_symbol))
-                    .route("/reel-symbol", web::post().to(slot_config_api::add_reel_symbol))
+                    .route(
+                        "/reel-symbol",
+                        web::post().to(slot_config_api::add_reel_symbol),
+                    )
                     .route("/payline", web::post().to(slot_config_api::add_payline))
-                    .route("/{id}/symbols", web::get().to(slot_config_api::get_slot_symbols))
-                    .route("/{id}/reels", web::get().to(slot_config_api::get_slot_reels))
-                    .route("/{id}/paylines", web::get().to(slot_config_api::get_slot_paylines))
-                    .route("/spin", web::post().to(slot_config_api::test_spin))
+                    .route(
+                        "/{id}/symbols",
+                        web::get().to(slot_config_api::get_slot_symbols),
+                    )
+                    .route(
+                        "/{id}/reels",
+                        web::get().to(slot_config_api::get_slot_reels),
+                    )
+                    .route(
+                        "/{id}/paylines",
+                        web::get().to(slot_config_api::get_slot_paylines),
+                    )
+                    .route("/spin", web::post().to(slot_config_api::test_spin)),
             )
             .service(fs::Files::new("/admin", "./admin").index_file("index.html"))
             .app_data(state.clone())
@@ -326,6 +343,6 @@ async fn main() -> std::io::Result<()> {
     .bind((host.as_str(), port))?
     .run()
     .await?;
-    
+
     Ok(())
 }

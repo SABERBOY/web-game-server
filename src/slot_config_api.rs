@@ -1,8 +1,8 @@
+use crate::universal_slots::{Payline, SlotConfig, SlotConfigBuilder, SlotSymbol, SymbolType};
 use actix_web::{web, HttpResponse, Result};
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
 use std::collections::HashMap;
-use crate::universal_slots::{SlotConfig, SlotSymbol, SymbolType, Payline, SlotConfigBuilder};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateSlotConfigRequest {
@@ -88,9 +88,7 @@ pub async fn create_slot_config(
 }
 
 // 获取所有slot配置列表
-pub async fn list_slot_configs(
-    pool: web::Data<Pool<Postgres>>,
-) -> Result<HttpResponse> {
+pub async fn list_slot_configs(pool: web::Data<Pool<Postgres>>) -> Result<HttpResponse> {
     let configs = sqlx::query!(
         "SELECT * FROM slot_configurations WHERE is_active = true ORDER BY created_at DESC"
     )
@@ -101,27 +99,29 @@ pub async fn list_slot_configs(
         Ok(configs) => {
             let serializable_configs: Vec<serde_json::Value> = configs
                 .into_iter()
-                .map(|config| serde_json::json!({
-                    "id": config.id,
-                    "name": config.name,
-                    "rows": config.rows,
-                    "reels": config.reels,
-                    "is_megaway": config.is_megaway,
-                    "min_megaway_rows": config.min_megaway_rows,
-                    "max_megaway_rows": config.max_megaway_rows,
-                    "default_bet": config.default_bet,
-                    "min_bet": config.min_bet,
-                    "max_bet": config.max_bet,
-                    "wild_enabled": config.wild_enabled,
-                    "free_spins_enabled": config.free_spins_enabled,
-                    "rtp_percentage": config.rtp_percentage.map(|r| r.to_string()),
-                    "is_active": config.is_active,
-                    "created_at": config.created_at.map(|t| t.to_string()),
-                    "updated_at": config.updated_at.map(|t| t.to_string())
-                }))
+                .map(|config| {
+                    serde_json::json!({
+                        "id": config.id,
+                        "name": config.name,
+                        "rows": config.rows,
+                        "reels": config.reels,
+                        "is_megaway": config.is_megaway,
+                        "min_megaway_rows": config.min_megaway_rows,
+                        "max_megaway_rows": config.max_megaway_rows,
+                        "default_bet": config.default_bet,
+                        "min_bet": config.min_bet,
+                        "max_bet": config.max_bet,
+                        "wild_enabled": config.wild_enabled,
+                        "free_spins_enabled": config.free_spins_enabled,
+                        "rtp_percentage": config.rtp_percentage.map(|r| r.to_string()),
+                        "is_active": config.is_active,
+                        "created_at": config.created_at.map(|t| t.to_string()),
+                        "updated_at": config.updated_at.map(|t| t.to_string())
+                    })
+                })
                 .collect();
             Ok(HttpResponse::Ok().json(serializable_configs))
-        },
+        }
         Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": format!("Failed to fetch slot configurations: {}", e)
         }))),
@@ -134,13 +134,10 @@ pub async fn get_slot_config(
     path: web::Path<i32>,
 ) -> Result<HttpResponse> {
     let config_id = path.into_inner();
-    
-    let config = sqlx::query!(
-        "SELECT * FROM slot_configurations WHERE id = $1",
-        config_id
-    )
-    .fetch_one(pool.get_ref())
-    .await;
+
+    let config = sqlx::query!("SELECT * FROM slot_configurations WHERE id = $1", config_id)
+        .fetch_one(pool.get_ref())
+        .await;
 
     match config {
         Ok(config) => {
@@ -163,7 +160,7 @@ pub async fn get_slot_config(
                 "updated_at": config.updated_at.map(|t| t.to_string())
             });
             Ok(HttpResponse::Ok().json(serializable_config))
-        },
+        }
         Err(e) => Ok(HttpResponse::NotFound().json(serde_json::json!({
             "error": format!("Slot configuration not found: {}", e)
         }))),
@@ -203,23 +200,20 @@ pub async fn add_symbol(
                     6 => "payout_6x",
                     _ => continue,
                 };
-                
+
                 let query = format!(
                     "UPDATE slot_symbols SET {} = {} WHERE id = {}",
                     column, payout, rec.id
                 );
-                
-                sqlx::query(&query)
-                    .execute(pool.get_ref())
-                    .await
-                    .ok();
+
+                sqlx::query(&query).execute(pool.get_ref()).await.ok();
             }
 
             Ok(HttpResponse::Ok().json(serde_json::json!({
                 "id": rec.id,
                 "message": "Symbol created successfully"
             })))
-        },
+        }
         Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": format!("Failed to create symbol: {}", e)
         }))),
@@ -264,7 +258,7 @@ pub async fn add_payline(
     req: web::Json<CreatePaylineRequest>,
 ) -> Result<HttpResponse> {
     let pattern_json = serde_json::to_value(&req.pattern).unwrap();
-    
+
     let result = sqlx::query!(
         r#"
         INSERT INTO slot_paylines 
@@ -297,7 +291,7 @@ pub async fn get_slot_symbols(
     path: web::Path<i32>,
 ) -> Result<HttpResponse> {
     let config_id = path.into_inner();
-    
+
     let symbols = sqlx::query!(
         "SELECT * FROM slot_symbols WHERE slot_config_id = $1 ORDER BY value",
         config_id
@@ -309,23 +303,25 @@ pub async fn get_slot_symbols(
         Ok(symbols) => {
             let serializable_symbols: Vec<serde_json::Value> = symbols
                 .into_iter()
-                .map(|symbol| serde_json::json!({
-                    "id": symbol.id,
-                    "slot_config_id": symbol.slot_config_id,
-                    "name": symbol.name,
-                    "symbol_type": symbol.symbol_type,
-                    "value": symbol.value,
-                    "image_url": symbol.image_url,
-                    "payout_2x": symbol.payout_2x,
-                    "payout_3x": symbol.payout_3x,
-                    "payout_4x": symbol.payout_4x,
-                    "payout_5x": symbol.payout_5x,
-                    "payout_6x": symbol.payout_6x,
-                    "created_at": symbol.created_at.map(|t| t.to_string())
-                }))
+                .map(|symbol| {
+                    serde_json::json!({
+                        "id": symbol.id,
+                        "slot_config_id": symbol.slot_config_id,
+                        "name": symbol.name,
+                        "symbol_type": symbol.symbol_type,
+                        "value": symbol.value,
+                        "image_url": symbol.image_url,
+                        "payout_2x": symbol.payout_2x,
+                        "payout_3x": symbol.payout_3x,
+                        "payout_4x": symbol.payout_4x,
+                        "payout_5x": symbol.payout_5x,
+                        "payout_6x": symbol.payout_6x,
+                        "created_at": symbol.created_at.map(|t| t.to_string())
+                    })
+                })
                 .collect();
             Ok(HttpResponse::Ok().json(serializable_symbols))
-        },
+        }
         Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": format!("Failed to fetch symbols: {}", e)
         }))),
@@ -338,7 +334,7 @@ pub async fn get_slot_reels(
     path: web::Path<i32>,
 ) -> Result<HttpResponse> {
     let config_id = path.into_inner();
-    
+
     let reels = sqlx::query!(
         r#"
         SELECT sr.*, s.name as symbol_name, s.symbol_type 
@@ -356,19 +352,21 @@ pub async fn get_slot_reels(
         Ok(reels) => {
             let serializable_reels: Vec<serde_json::Value> = reels
                 .into_iter()
-                .map(|reel| serde_json::json!({
-                    "id": reel.id,
-                    "slot_config_id": reel.slot_config_id,
-                    "reel_number": reel.reel_number,
-                    "position": reel.position,
-                    "symbol_id": reel.symbol_id,
-                    "weight": reel.weight,
-                    "symbol_name": reel.symbol_name,
-                    "symbol_type": reel.symbol_type
-                }))
+                .map(|reel| {
+                    serde_json::json!({
+                        "id": reel.id,
+                        "slot_config_id": reel.slot_config_id,
+                        "reel_number": reel.reel_number,
+                        "position": reel.position,
+                        "symbol_id": reel.symbol_id,
+                        "weight": reel.weight,
+                        "symbol_name": reel.symbol_name,
+                        "symbol_type": reel.symbol_type
+                    })
+                })
                 .collect();
             Ok(HttpResponse::Ok().json(serializable_reels))
-        },
+        }
         Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": format!("Failed to fetch reel configuration: {}", e)
         }))),
@@ -381,7 +379,7 @@ pub async fn get_slot_paylines(
     path: web::Path<i32>,
 ) -> Result<HttpResponse> {
     let config_id = path.into_inner();
-    
+
     let paylines = sqlx::query!(
         "SELECT * FROM slot_paylines WHERE slot_config_id = $1 ORDER BY line_number",
         config_id
@@ -393,16 +391,18 @@ pub async fn get_slot_paylines(
         Ok(paylines) => {
             let serializable_paylines: Vec<serde_json::Value> = paylines
                 .into_iter()
-                .map(|payline| serde_json::json!({
-                    "id": payline.id,
-                    "slot_config_id": payline.slot_config_id,
-                    "line_number": payline.line_number,
-                    "pattern": payline.pattern,
-                    "is_active": payline.is_active
-                }))
+                .map(|payline| {
+                    serde_json::json!({
+                        "id": payline.id,
+                        "slot_config_id": payline.slot_config_id,
+                        "line_number": payline.line_number,
+                        "pattern": payline.pattern,
+                        "is_active": payline.is_active
+                    })
+                })
                 .collect();
             Ok(HttpResponse::Ok().json(serializable_paylines))
-        },
+        }
         Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": format!("Failed to fetch paylines: {}", e)
         }))),
@@ -415,13 +415,10 @@ pub async fn build_slot_machine(
     config_id: i32,
 ) -> Result<crate::universal_slots::UniversalSlotMachine, String> {
     // 获取配置
-    let config = sqlx::query!(
-        "SELECT * FROM slot_configurations WHERE id = $1",
-        config_id
-    )
-    .fetch_one(pool)
-    .await
-    .map_err(|e| format!("Failed to fetch config: {}", e))?;
+    let config = sqlx::query!("SELECT * FROM slot_configurations WHERE id = $1", config_id)
+        .fetch_one(pool)
+        .await
+        .map_err(|e| format!("Failed to fetch config: {}", e))?;
 
     // 获取符号
     let symbol_records = sqlx::query!(
@@ -482,7 +479,10 @@ pub async fn build_slot_machine(
         reel_compositions
             .entry(record.reel_number as usize)
             .or_insert_with(Vec::new)
-            .push((record.symbol_id.unwrap_or(0), record.weight.unwrap_or(1) as u32));
+            .push((
+                record.symbol_id.unwrap_or(0),
+                record.weight.unwrap_or(1) as u32,
+            ));
     }
 
     // 获取支付线
@@ -498,7 +498,7 @@ pub async fn build_slot_machine(
     for record in payline_records {
         let pattern: Vec<Vec<i32>> = serde_json::from_value(record.pattern)
             .map_err(|e| format!("Failed to parse payline pattern: {}", e))?;
-        
+
         let pattern_tuples: Vec<(usize, usize)> = pattern
             .into_iter()
             .map(|p| (p[0] as usize, p[1] as usize))
@@ -525,7 +525,10 @@ pub async fn build_slot_machine(
         max_bet: config.max_bet.unwrap_or(1000) as u32,
         wild_enabled: config.wild_enabled.unwrap_or(false),
         free_spins_enabled: config.free_spins_enabled.unwrap_or(false),
-        rtp_percentage: config.rtp_percentage.map(|r| r.to_string().parse::<f64>().unwrap_or(96.0)).unwrap_or(96.0),
+        rtp_percentage: config
+            .rtp_percentage
+            .map(|r| r.to_string().parse::<f64>().unwrap_or(96.0))
+            .unwrap_or(96.0),
     };
 
     let builder = SlotConfigBuilder {
@@ -553,7 +556,7 @@ pub async fn test_spin(
         Ok(machine) => {
             let result = machine.spin(req.bet_per_line);
             Ok(HttpResponse::Ok().json(result))
-        },
+        }
         Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": e
         }))),
