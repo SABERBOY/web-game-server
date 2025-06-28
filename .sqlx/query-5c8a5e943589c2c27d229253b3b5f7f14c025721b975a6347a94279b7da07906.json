@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM slot_reel_symbols WHERE slot_config_id = $1 ORDER BY reel_number, position",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "slot_config_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "reel_number",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "position",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "symbol_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "weight",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "5c8a5e943589c2c27d229253b3b5f7f14c025721b975a6347a94279b7da07906"
+}

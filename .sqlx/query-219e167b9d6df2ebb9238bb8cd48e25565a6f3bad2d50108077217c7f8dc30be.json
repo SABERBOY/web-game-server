@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM slot_paylines WHERE slot_config_id = $1 ORDER BY line_number",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "slot_config_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "line_number",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "pattern",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 4,
+        "name": "is_active",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "219e167b9d6df2ebb9238bb8cd48e25565a6f3bad2d50108077217c7f8dc30be"
+}

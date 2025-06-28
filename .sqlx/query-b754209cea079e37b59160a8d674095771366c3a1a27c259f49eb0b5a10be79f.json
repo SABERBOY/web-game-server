@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM slot_symbols WHERE slot_config_id = $1 ORDER BY value",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "slot_config_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "symbol_type",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "value",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "image_url",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "payout_2x",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
+        "name": "payout_3x",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 8,
+        "name": "payout_4x",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 9,
+        "name": "payout_5x",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 10,
+        "name": "payout_6x",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 11,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "b754209cea079e37b59160a8d674095771366c3a1a27c259f49eb0b5a10be79f"
+}

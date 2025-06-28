@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT sr.*, s.name as symbol_name, s.symbol_type \n        FROM slot_reel_symbols sr\n        JOIN slot_symbols s ON sr.symbol_id = s.id\n        WHERE sr.slot_config_id = $1 \n        ORDER BY sr.reel_number, sr.position\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "slot_config_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "reel_number",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "position",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "symbol_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "weight",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "symbol_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "symbol_type",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "99206229fa99e5f9dca966cf109b5aa2c50cdc42ba38a7ad4a089c648cdf9fc8"
+}

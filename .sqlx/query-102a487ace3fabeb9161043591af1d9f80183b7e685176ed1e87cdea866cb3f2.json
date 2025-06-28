@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO slot_reel_symbols \n        (slot_config_id, reel_number, position, symbol_id, weight)\n        VALUES ($1, $2, $3, $4, $5)\n        ON CONFLICT (slot_config_id, reel_number, position) \n        DO UPDATE SET symbol_id = $4, weight = $5\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "102a487ace3fabeb9161043591af1d9f80183b7e685176ed1e87cdea866cb3f2"
+}

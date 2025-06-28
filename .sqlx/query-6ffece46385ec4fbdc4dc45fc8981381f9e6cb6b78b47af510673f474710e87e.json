@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO slot_paylines \n        (slot_config_id, line_number, pattern, is_active)\n        VALUES ($1, $2, $3, $4)\n        ON CONFLICT (slot_config_id, line_number)\n        DO UPDATE SET pattern = $3, is_active = $4\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4",
+        "Jsonb",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6ffece46385ec4fbdc4dc45fc8981381f9e6cb6b78b47af510673f474710e87e"
+}
